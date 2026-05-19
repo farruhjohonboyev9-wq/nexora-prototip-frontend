@@ -1,91 +1,90 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { api, setToken, getToken } from "@/lib/api";
-import type { User } from "@/lib/types";
+import { useState, FormEvent } from "react";
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
 
-type AuthContextType = {
-  user: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-};
+export default function Login() {
+  const { login } = useAuth();
+  const [, navigate] = useLocation();
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  // =========================
-  // INIT USER ON LOAD
-  // =========================
-  useEffect(() => {
-    const token = getToken();
-
-    if (!token) {
+    try {
+      await login(email, password);
+      navigate("/feed");
+    } catch (err: any) {
+      setError(err?.message || "Login failed");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setToken(token);
-
-    api.users
-      .me()
-      .then((u) => setUser(u))
-      .catch(() => {
-        setUser(null);
-        setToken(null);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  // =========================
-  // LOGIN (FIXED)
-  // =========================
-  const login = async (email: string, password: string) => {
-    const res = await api.auth.login({ email, password });
-
-    setToken(res.access_token);
-
-    const me = await api.users.me();
-    setUser(me);
-  };
-
-  // =========================
-  // REGISTER
-  // =========================
-  const register = async (
-    username: string,
-    email: string,
-    password: string
-  ) => {
-    await api.auth.register({ username, email, password });
-
-    // auto login after register
-    const res = await api.auth.login({ email, password });
-
-    setToken(res.access_token);
-
-    const me = await api.users.me();
-    setUser(me);
-  };
-
-  // =========================
-  // LOGOUT
-  // =========================
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("nexora_token");
-  };
+  }
 
   return (
-    <AuthContext.Provider
-      value={{ user, loading, login, register, logout }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-extrabold gradient-text">Nexora</h1>
+          <p className="text-muted-foreground mt-2 text-sm">
+            Connect with people you love
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="bg-card border border-border rounded-2xl p-8">
+          <form onSubmit={handleSubmit} className="space-y-4">
+
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full bg-input border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full bg-input border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+            />
+
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full gradient-bg text-white font-semibold py-3 rounded-lg text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+            >
+              {loading ? "Logging in..." : "Log In"}
+            </button>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-card border border-border rounded-2xl p-6 mt-4 text-center">
+          <p className="text-sm text-foreground/80">
+            Don't have an account?{" "}
+            <Link href="/register" className="text-primary font-semibold hover:underline">
+              Sign up
+            </Link>
+          </p>
+        </div>
+
+      </div>
+    </div>
   );
 }
-
-export const useAuth = () => useContext(AuthContext);

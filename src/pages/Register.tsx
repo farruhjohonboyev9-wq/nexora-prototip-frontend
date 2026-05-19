@@ -1,26 +1,30 @@
-import { useState, FormEvent } from 'react';
-import { Link, useLocation } from 'wouter';
-import { useAuth } from '@/context/AuthContext';
+import { useState, FormEvent } from "react";
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
 
-export function Register() {
+export default function Register() {
   const { register } = useAuth();
   const [, navigate] = useLocation();
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
+
     try {
       await register(username, email, password);
-      navigate('/feed');
+      navigate("/feed");
     } catch (err: any) {
-      setError(err.message || 'Registration failed');
+      setError(err.message || "Registration failed");
     }
+
     setLoading(false);
   }
 
@@ -29,7 +33,9 @@ export function Register() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-5xl font-extrabold gradient-text">Nexora</h1>
-          <p className="text-muted-foreground mt-2 text-sm">Join the community today</p>
+          <p className="text-muted-foreground mt-2 text-sm">
+            Join the community today
+          </p>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-8">
@@ -38,27 +44,29 @@ export function Register() {
               type="text"
               placeholder="Username"
               value={username}
-              onChange={e => setUsername(e.target.value)}
+              onChange={(e) => setUsername(e.target.value)}
               required
               minLength={3}
-              className="w-full bg-input border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+              className="w-full bg-input border border-border rounded-lg px-4 py-3 text-sm"
             />
+
             <input
               type="email"
               placeholder="Email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-input border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+              className="w-full bg-input border border-border rounded-lg px-4 py-3 text-sm"
             />
+
             <input
               type="password"
               placeholder="Password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full bg-input border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+              className="w-full bg-input border border-border rounded-lg px-4 py-3 text-sm"
             />
 
             {error && (
@@ -68,21 +76,21 @@ export function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full gradient-bg text-white font-semibold py-3 rounded-lg text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+              className="w-full gradient-bg text-white font-semibold py-3 rounded-lg"
             >
-              {loading ? 'Creating account…' : 'Sign Up'}
+              {loading ? "Creating account…" : "Sign Up"}
             </button>
           </form>
 
-          <p className="text-xs text-muted-foreground text-center mt-4 leading-relaxed">
-            By signing up, you agree to our Terms of Service and Privacy Policy.
+          <p className="text-xs text-muted-foreground text-center mt-4">
+            By signing up, you agree to Terms & Privacy Policy.
           </p>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-6 mt-4 text-center">
-          <p className="text-sm text-foreground/80">
-            Have an account?{' '}
-            <Link href="/login" className="text-primary font-semibold hover:underline">
+          <p className="text-sm">
+            Have an account?{" "}
+            <Link href="/login" className="text-primary font-semibold">
               Log in
             </Link>
           </p>

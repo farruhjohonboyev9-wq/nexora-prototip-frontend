@@ -1,0 +1,17 @@
+name = "nexora-web"
+main = "src/index.ts"
+type = "javascript"
+compatibility_date = "2026-05-19"
+
+# Build configuration
+build = { command = "npm run build", cwd = "./", watch_paths = ["src/**/*.ts", "src/**/*.tsx"] }
+
+# Environment-specific variables
+env.production = { vars = { ENVIRONMENT = "production" } }
+env.staging = { vars = { ENVIRONMENT = "staging" } }
+
+# Routes (optional)
+routes = [{ pattern = "example.com", zone_name = "example.com" }]
+
+# Deployment settings
+main_branch = "main"

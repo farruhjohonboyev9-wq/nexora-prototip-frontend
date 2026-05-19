@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
+import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
   base: "/",
@@ -9,25 +9,25 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src")
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
-    dedupe: ["react", "react-dom"]
+    dedupe: ["react", "react-dom"],
   },
 
   build: {
     outDir: "dist",
-    emptyOutDir: true
+    emptyOutDir: true,
   },
 
   server: {
     host: true,
     port: 5173,
     proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
+      "/api": {
+        target: "http://localhost:3000",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
-  }
+  },
 });

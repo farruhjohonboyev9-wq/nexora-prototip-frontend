@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { Sidebar, BottomNav } from "@/components/Sidebar";
 
-// ✅ FIX: default imports
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 
@@ -21,7 +20,7 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30000 } },
 });
 
-function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -33,10 +32,11 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   }
 
   if (!user) return <Redirect to="/login" />;
-  return <Component />;
+
+  return <>{children}</>;
 }
 
-function AuthRoute({ component: Component }: { component: React.ComponentType }) {
+function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -48,7 +48,8 @@ function AuthRoute({ component: Component }: { component: React.ComponentType })
   }
 
   if (user) return <Redirect to="/feed" />;
-  return <Component />;
+
+  return <>{children}</>;
 }
 
 function AppLayout({ children }: { children: React.ReactNode }) {
@@ -80,29 +81,72 @@ function Router() {
       <Switch>
         <Route path="/" component={() => <Redirect to="/feed" />} />
 
-        <Route path="/login" component={() => <AuthRoute component={Login} />} />
-        <Route path="/register" component={() => <AuthRoute component={Register} />} />
+        <Route path="/login">
+          <AuthRoute>
+            <Login />
+          </AuthRoute>
+        </Route>
 
-        <Route path="/feed" component={() => <ProtectedRoute component={Feed} />} />
-        <Route path="/explore" component={() => <ProtectedRoute component={Explore} />} />
-        <Route path="/create" component={() => <ProtectedRoute component={Create} />} />
-        <Route path="/notifications" component={() => <ProtectedRoute component={Notifications} />} />
-        <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
-        <Route path="/profile/:id" component={() => <ProtectedRoute component={UserProfile} />} />
-        <Route path="/post/:id" component={() => <ProtectedRoute component={PostDetail} />} />
+        <Route path="/register">
+          <AuthRoute>
+            <Register />
+          </AuthRoute>
+        </Route>
 
-        <Route component={() => (
+        <Route path="/feed">
+          <ProtectedRoute>
+            <Feed />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/explore">
+          <ProtectedRoute>
+            <Explore />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/create">
+          <ProtectedRoute>
+            <Create />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/notifications">
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/profile">
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/profile/:id">
+          <ProtectedRoute>
+            <UserProfile />
+          </ProtectedRoute>
+        </Route>
+
+        <Route path="/post/:id">
+          <ProtectedRoute>
+            <PostDetail />
+          </ProtectedRoute>
+        </Route>
+
+        <Route>
           <div className="flex flex-col items-center justify-center min-h-screen gap-3">
             <p className="text-4xl font-bold gradient-text">404</p>
             <p className="text-muted-foreground">Page not found</p>
           </div>
-        )} />
+        </Route>
       </Switch>
     </AppLayout>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -113,5 +157,3 @@ function App() {
     </QueryClientProvider>
   );
 }
-
-export default App;

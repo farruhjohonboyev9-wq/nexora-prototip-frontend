@@ -1,5 +1,11 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { api, setToken } from "@/lib/api";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { api } from "@/lib/api";
 import type { User } from "@/lib/types";
 
 interface AuthContextValue {
@@ -13,6 +19,8 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const TOKEN_KEY = "nexora_token";
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,21 +29,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // INIT AUTH
   // =========================
   useEffect(() => {
-    const token = localStorage.getItem("nexora_token");
+    const token = localStorage.getItem(TOKEN_KEY);
 
     if (!token) {
       setLoading(false);
       return;
     }
 
-    setToken(token);
-
     api.users
       .me()
       .then((u) => setUser(u))
       .catch(() => {
         setUser(null);
-        setToken(null);
+        localStorage.removeItem(TOKEN_KEY);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -46,10 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const resp = await api.auth.login({ email, password });
 
-    setToken(resp.access_token);
-
-    // 🔥 ensure token applied before next request
-    await new Promise((r) => setTimeout(r, 50));
+    localStorage.setItem(TOKEN_KEY, resp.access_token);
 
     const me = await api.users.me();
     setUser(me);
@@ -58,26 +61,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // =========================
   // REGISTER
   // =========================
-  const register = useCallback(async (username: string, email: string, password: string) => {
-    await api.auth.register({ username, email, password });
+  const register = useCallback(
+    async (username: string, email: string, password: string) => {
+      await api.auth.register({ username, email, password });
 
-    const resp = await api.auth.login({ email, password });
+      const resp = await api.auth.login({ email, password });
 
-    setToken(resp.access_token);
+      localStorage.setItem(TOKEN_KEY, resp.access_token);
 
-    await new Promise((r) => setTimeout(r, 50));
-
-    const me = await api.users.me();
-    setUser(me);
-  }, []);
+      const me = await api.users.me();
+      setUser(me);
+    },
+    []
+  );
 
   // =========================
   // LOGOUT
   // =========================
   const logout = useCallback(() => {
     setUser(null);
-    setToken(null);
-    localStorage.removeItem("nexora_token");
+    localStorage.removeItem(TOKEN_KEY);
   }, []);
 
   // =========================
